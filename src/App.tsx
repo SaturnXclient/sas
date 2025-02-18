@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Upload, Image as ImageIcon, Wand2, Layers, History, Palette, Sparkles, ChevronRight, Star, Users, Zap, Award, Play, ArrowRight, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -87,6 +87,33 @@ function App() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [showLearnMore, setShowLearnMore] = useState(false);
   
+  // Particle effect
+  const particlesRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const createParticle = () => {
+      if (!particlesRef.current) return;
+      
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.width = Math.random() * 5 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.opacity = (Math.random() * 0.5 + 0.2).toString();
+      
+      particlesRef.current.appendChild(particle);
+      
+      setTimeout(() => {
+        if (particle.parentNode === particlesRef.current) {
+          particlesRef.current.removeChild(particle);
+        }
+      }, 20000);
+    };
+    
+    const interval = setInterval(createParticle, 200);
+    return () => clearInterval(interval);
+  }, []);
+  
   // Use intersection observer hooks for animations
   const [heroRef, heroInView] = useInView({ triggerOnce: true });
   const [statsRef, statsInView] = useInView({ triggerOnce: true });
@@ -158,7 +185,6 @@ function App() {
 
   const handleTryDemo = useCallback(() => {
     setIsUploading(true);
-    // Simulate loading the demo image
     setTimeout(() => {
       setImage(DEMO_IMAGE);
       setIsUploading(false);
@@ -172,7 +198,6 @@ function App() {
 
   const handleTryExample = useCallback((exampleUrl: string) => {
     setIsUploading(true);
-    // Simulate loading the example image
     setTimeout(() => {
       setImage(exampleUrl);
       setIsUploading(false);
@@ -184,9 +209,28 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen text-white overflow-hidden relative">
+      {/* Video Background */}
+      <div className="video-background">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=80"
+        >
+          <source
+            src="https://cdn.coverr.co/videos/coverr-abstract-blue-particles-2584/1080p.mp4"
+            type="video/mp4"
+          />
+        </video>
+      </div>
+
+      {/* Particle Effect */}
+      <div ref={particlesRef} className="particles" />
+      
       {/* Hero Section */}
-      <header className="relative overflow-hidden">
+      <header className="relative">
         <motion.div
           ref={heroRef}
           initial={{ opacity: 0, y: 20 }}
@@ -197,19 +241,18 @@ function App() {
           <nav className="flex justify-between items-center mb-16">
             <div className="flex items-center space-x-2">
               <ImageIcon className="w-8 h-8 text-blue-400" />
-              <span className="text-2xl font-bold">Sarux PS</span>
+              <span className="text-2xl font-bold glow-text">Sarux PS</span>
             </div>
             <div className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
               <a href="#examples" className="text-gray-300 hover:text-white transition-colors">Examples</a>
               <button 
                 onClick={handleTryDemo}
-                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors glow"
               >
                 Get Started
               </button>
             </div>
-            {/* Mobile Menu Button */}
             <button className="md:hidden p-2 text-gray-300 hover:text-white">
               <Menu className="w-6 h-6" />
             </button>
@@ -220,7 +263,7 @@ function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-4xl md:text-6xl font-bold mb-6"
+              className="text-5xl md:text-7xl font-bold mb-6 glow-text"
             >
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
                 Professional Photo Editing
@@ -232,7 +275,7 @@ function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={heroInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-lg md:text-xl text-gray-300 mb-8 px-4"
+              className="text-xl md:text-2xl text-gray-300 mb-8 px-4"
             >
               Edit photos like a pro with our powerful, free online image editor.
               No installation required.
@@ -245,17 +288,17 @@ function App() {
             >
               <button 
                 onClick={handleTryDemo}
-                className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl transition-colors flex items-center justify-center space-x-2 glow"
               >
                 <Play className="w-5 h-5" />
-                <span>Try Demo</span>
+                <span className="text-lg">Try Demo</span>
               </button>
               <button 
                 onClick={handleLearnMore}
-                className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="glass px-8 py-4 rounded-xl transition-colors flex items-center justify-center space-x-2"
               >
                 <ChevronRight className="w-5 h-5" />
-                <span>Learn More</span>
+                <span className="text-lg">Learn More</span>
               </button>
             </motion.div>
           </div>
@@ -270,11 +313,11 @@ function App() {
         >
           <div
             className={`
-              max-w-4xl mx-auto border-4 border-dashed rounded-2xl p-12 text-center
-              transition-all duration-200 cursor-pointer backdrop-blur-sm
+              max-w-4xl mx-auto glass rounded-2xl p-12 text-center
+              transition-all duration-200 cursor-pointer
               ${isDragging
-                ? 'border-blue-400 bg-blue-400/10 scale-102'
-                : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
+                ? 'border-blue-400 bg-blue-400/10 scale-102 glow'
+                : 'border-gray-600 hover:border-gray-500'
               }
             `}
             onDragOver={handleDragOver}
@@ -288,8 +331,8 @@ function App() {
               </div>
             ) : (
               <>
-                <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400" />
-                <h3 className="text-3xl font-semibold mb-4">
+                <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400 float" />
+                <h3 className="text-3xl font-semibold mb-4 glow-text">
                   Drag & Drop to Start Editing
                 </h3>
                 <p className="text-gray-400 text-lg mb-8">
@@ -304,7 +347,7 @@ function App() {
                 />
                 <label
                   htmlFor="file-upload"
-                  className="inline-block bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors cursor-pointer"
+                  className="inline-block bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors cursor-pointer glow"
                 >
                   Choose File
                 </label>
@@ -334,10 +377,10 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={statsInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
+                className="glass p-6 rounded-xl text-center feature-card"
               >
                 <stat.icon className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-                <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                <div className="text-3xl font-bold mb-1 glow-text">{stat.value}</div>
                 <div className="text-gray-400">{stat.label}</div>
               </motion.div>
             ))}
@@ -356,7 +399,7 @@ function App() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 glow-text">
               Professional Features, <span className="text-blue-400">Zero Install</span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
@@ -371,10 +414,10 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={featuresInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm hover:bg-gray-800 transition-colors"
+                className="glass p-6 rounded-xl feature-card"
               >
                 <feature.icon className="w-12 h-12 text-blue-400 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <h3 className="text-xl font-semibold mb-2 glow-text">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
               </motion.div>
             ))}
@@ -384,7 +427,7 @@ function App() {
         {/* Testimonials Section */}
         <section className="container mx-auto px-4 py-20 overflow-hidden">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 glow-text">
               Loved by <span className="text-blue-400">Creators</span>
             </h2>
             <p className="text-gray-400 text-lg">
@@ -400,16 +443,16 @@ function App() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.5 }}
-                className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm"
+                className="glass p-8 rounded-xl"
               >
                 <div className="flex items-center space-x-4 mb-6">
                   <img
                     src={testimonials[activeTestimonial].avatar}
                     alt={testimonials[activeTestimonial].name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-blue-400 glow"
                   />
                   <div>
-                    <h3 className="text-xl font-semibold">
+                    <h3 className="text-xl font-semibold glow-text">
                       {testimonials[activeTestimonial].name}
                     </h3>
                     <p className="text-gray-400">
@@ -442,7 +485,7 @@ function App() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 glow-text">
               Endless <span className="text-blue-400">Possibilities</span>
             </h2>
             <p className="text-gray-400 text-lg">
@@ -457,7 +500,7 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={examplesInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group relative rounded-xl bg-gray-800 overflow-hidden"
+                className="group relative rounded-xl overflow-hidden feature-card"
               >
                 <div className="aspect-w-16 aspect-h-9">
                   <img
@@ -468,7 +511,7 @@ function App() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent flex flex-col justify-end p-6">
-                  <h3 className="text-xl font-semibold mb-2">{example.title}</h3>
+                  <h3 className="text-xl font-semibold mb-2 glow-text">{example.title}</h3>
                   <p className="text-gray-300 mb-4">{example.description}</p>
                   <button 
                     onClick={() => handleTryExample(example.url)}
@@ -485,8 +528,8 @@ function App() {
 
         {/* CTA Section */}
         <section className="container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">
+          <div className="max-w-4xl mx-auto text-center glass rounded-2xl p-12">
+            <h2 className="text-4xl font-bold mb-6 glow-text">
               Ready to Start <span className="text-blue-400">Creating?</span>
             </h2>
             <p className="text-gray-400 text-lg mb-8">
@@ -494,7 +537,7 @@ function App() {
             </p>
             <button 
               onClick={handleTryDemo}
-              className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors"
+              className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors glow"
             >
               Start Editing Now
             </button>
@@ -507,7 +550,7 @@ function App() {
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <ImageIcon className="w-6 h-6 text-blue-400" />
-                <span className="text-xl font-bold">Sarux PS</span>
+                <span className="text-xl font-bold glow-text">Sarux PS</span>
               </div>
               <div className="text-gray-400">
                 © 2025 Sarux PS. All rights reserved.

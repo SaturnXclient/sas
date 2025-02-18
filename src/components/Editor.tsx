@@ -380,5 +380,3 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
     </>
   );
 }
-
-export default Editor;

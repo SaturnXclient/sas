@@ -4,7 +4,7 @@ import { useEditorStore } from '../store/editorStore';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { X, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, RotateCcw, Maximize, Minimize, Menu, ChevronLeft, Save, Share2, Download, Settings, Eye, EyeOff } from 'lucide-react';
 import Toolbar from './Toolbar';
 import LayersPanel from './LayersPanel';
 import PropertiesPanel from './PropertiesPanel';
@@ -24,13 +24,15 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
   const { setCanvas, canvas, addToHistory, projectName } = useEditorStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [zoom, setZoom] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
   const [activePanel, setActivePanel] = useState<'layers' | 'properties' | 'filters' | 'history' | 'ai'>('layers');
   const [isDragging, setIsDragging] = useState(false);
   const [lastTouch, setLastTouch] = useState({ x: 0, y: 0 });
+  const [showGrid, setShowGrid] = useState(true);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   // Handle touch events for pan
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -58,7 +60,6 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
-    // Implement bounds checking
     const bounds = containerRef.current?.getBoundingClientRect();
     if (bounds) {
       setPanPosition(prev => ({
@@ -91,7 +92,7 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
     }
   }, []);
 
-  // Initialize canvas with mobile-friendly settings
+  // Initialize canvas
   useEffect(() => {
     let fabricCanvas: fabric.Canvas | null = null;
 
@@ -106,7 +107,7 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
         fabricCanvas = new fabric.Canvas(canvasRef.current, {
           width,
           height,
-          backgroundColor: '#2a2a2a',
+          backgroundColor: theme === 'dark' ? '#1a1a1a' : '#f0f0f0',
           preserveObjectStacking: true,
           enableRetinaScaling: true,
           selection: true,
@@ -152,7 +153,7 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
         fabricCanvas.dispose();
       }
     };
-  }, []);
+  }, [theme]);
 
   // Load image
   useEffect(() => {
@@ -187,6 +188,10 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
     return <ErrorMessage message={error} />;
   }
 
+  const themeClasses = theme === 'dark' 
+    ? 'bg-gray-900 text-white' 
+    : 'bg-gray-100 text-gray-900';
+
   return (
     <>
       <Helmet>
@@ -194,14 +199,70 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
         <meta name="description" content={t('editor.description')} />
       </Helmet>
 
-      <div className="flex h-screen bg-gray-900 overflow-hidden">
-        <div className="flex flex-col flex-1">
-          <ProjectHeader />
-          <div className="flex flex-1 relative">
-            <Toolbar />
+      <div className={`flex h-screen overflow-hidden ${themeClasses}`}>
+        {/* Left Sidebar - Tools */}
+        <div className={`
+          fixed md:relative left-0 h-full transition-all z-40
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
+          border-r
+        `}>
+          <Toolbar theme={theme} />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className={`h-16 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between px-4`}>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className={`p-2 rounded-lg transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                }`}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h1 className="text-lg font-semibold">{projectName}</h1>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className={`p-2 rounded-lg transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                }`}
+              >
+                {theme === 'dark' ? '🌞' : '🌙'}
+              </button>
+              <button
+                onClick={() => setShowGrid(!showGrid)}
+                className={`p-2 rounded-lg transition-colors ${
+                  theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                }`}
+              >
+                {showGrid ? <EyeOff className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
+              </button>
+              <button className="p-2">
+                <Save className="w-6 h-6" />
+              </button>
+              <button className="p-2">
+                <Share2 className="w-6 h-6" />
+              </button>
+              <button className="p-2">
+                <Download className="w-6 h-6" />
+              </button>
+              <button className="p-2">
+                <Settings className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Canvas Area */}
+          <div className="flex-1 relative">
             <div
               ref={containerRef}
-              className="flex-1 overflow-hidden relative"
+              className={`absolute inset-0 ${showGrid ? 'bg-grid' : ''}`}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -213,40 +274,55 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
                   transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoom})`
                 }}
               >
-                <canvas ref={canvasRef} className="max-w-full max-h-full" />
+                <canvas ref={canvasRef} className="max-w-full max-h-full shadow-lg" />
               </div>
 
-              {/* Zoom controls */}
-              <div className="absolute bottom-4 right-4 flex space-x-2">
+              {/* Zoom Controls */}
+              <div className={`
+                absolute bottom-4 right-4 flex space-x-2 p-2 rounded-lg
+                ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}
+                shadow-lg
+              `}>
                 <button
                   onClick={() => handleZoom(-0.1)}
-                  className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                  className={`p-2 rounded-full ${
+                    theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                  }`}
                 >
-                  <ZoomOut className="w-5 h-5 text-white" />
+                  <ZoomOut className="w-5 h-5" />
                 </button>
+                <div className="px-2 flex items-center min-w-[3rem] justify-center">
+                  {Math.round(zoom * 100)}%
+                </div>
                 <button
                   onClick={() => handleZoom(0.1)}
-                  className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                  className={`p-2 rounded-full ${
+                    theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                  }`}
                 >
-                  <ZoomIn className="w-5 h-5 text-white" />
+                  <ZoomIn className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => {
                     setZoom(1);
                     setPanPosition({ x: 0, y: 0 });
                   }}
-                  className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                  className={`p-2 rounded-full ${
+                    theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                  }`}
                 >
-                  <RotateCcw className="w-5 h-5 text-white" />
+                  <RotateCcw className="w-5 h-5" />
                 </button>
                 <button
                   onClick={toggleFullscreen}
-                  className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                  className={`p-2 rounded-full ${
+                    theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                  }`}
                 >
                   {isFullscreen ? (
-                    <Minimize className="w-5 h-5 text-white" />
+                    <Minimize className="w-5 h-5" />
                   ) : (
-                    <Maximize className="w-5 h-5 text-white" />
+                    <Maximize className="w-5 h-5" />
                   )}
                 </button>
               </div>
@@ -254,66 +330,55 @@ export default function Editor({ imageUrl }: { imageUrl: string }) {
           </div>
         </div>
 
-        {/* Mobile-optimized sidebar */}
-        <div
-          className={`
-            fixed md:relative top-0 right-0 h-full w-full md:w-80
-            transform transition-transform duration-300 ease-in-out
-            ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-            border-l border-gray-700 bg-gray-800/95 backdrop-blur-md overflow-y-auto z-30
-            md:bg-gray-800 md:backdrop-blur-none
-          `}
-        >
-          <div className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700 p-4 flex items-center justify-between">
+        {/* Right Sidebar - Panels */}
+        <div className={`
+          fixed md:relative right-0 h-full w-80
+          transform transition-transform duration-300 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+          ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
+          border-l backdrop-blur-md z-30
+        `}>
+          <div className={`sticky top-0 z-50 p-4 flex items-center justify-between ${
+            theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          } border-b`}>
             <div className="flex space-x-4">
-              <button
-                onClick={() => setActivePanel('layers')}
-                className={`px-3 py-1 rounded ${
-                  activePanel === 'layers' ? 'bg-blue-500 text-white' : 'text-gray-400'
-                }`}
-              >
-                Layers
-              </button>
-              <button
-                onClick={() => setActivePanel('properties')}
-                className={`px-3 py-1 rounded ${
-                  activePanel === 'properties' ? 'bg-blue-500 text-white' : 'text-gray-400'
-                }`}
-              >
-                Properties
-              </button>
-              <button
-                onClick={() => setActivePanel('filters')}
-                className={`px-3 py-1 rounded ${
-                  activePanel === 'filters' ? 'bg-blue-500 text-white' : 'text-gray-400'
-                }`}
-              >
-                Filters
-              </button>
+              {['layers', 'properties', 'filters', 'history', 'ai'].map((panel) => (
+                <button
+                  key={panel}
+                  onClick={() => setActivePanel(panel as any)}
+                  className={`px-3 py-1 rounded text-sm ${
+                    activePanel === panel
+                      ? theme === 'dark' 
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-blue-100 text-blue-800'
+                      : theme === 'dark'
+                        ? 'text-gray-400 hover:text-gray-300'
+                        : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {panel.charAt(0).toUpperCase() + panel.slice(1)}
+                </button>
+              ))}
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="md:hidden text-gray-400 hover:text-white"
+              className="md:hidden"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="p-4">
-            {activePanel === 'layers' && <LayersPanel />}
-            {activePanel === 'properties' && <PropertiesPanel />}
-            {activePanel === 'filters' && <FilterPanel />}
-            {activePanel === 'history' && <HistoryPanel />}
-            {activePanel === 'ai' && <AIPanel />}
+          <div className="p-4 overflow-y-auto" style={{ height: 'calc(100vh - 4rem)' }}>
+            {activePanel === 'layers' && <LayersPanel theme={theme} />}
+            {activePanel === 'properties' && <PropertiesPanel theme={theme} />}
+            {activePanel === 'filters' && <FilterPanel theme={theme} />}
+            {activePanel === 'history' && <HistoryPanel theme={theme} />}
+            {activePanel === 'ai' && <AIPanel theme={theme} />}
           </div>
         </div>
-
-        {/* Mobile toolbar */}
-        <MobileToolbar
-          onOpenSidebar={() => setIsSidebarOpen(true)}
-          className="md:hidden"
-        />
       </div>
     </>
   );
 }
+
+export default Editor;

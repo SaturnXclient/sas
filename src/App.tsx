@@ -1,12 +1,104 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, Image as ImageIcon, Wand2, Layers, History, Palette, Sparkles } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, Image as ImageIcon, Wand2, Layers, History, Palette, Sparkles, ChevronRight, Star, Users, Zap, Award, Play, ArrowRight, Menu } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import Editor from './components/Editor';
+
+// Demo image for the Try Demo feature
+const DEMO_IMAGE = 'https://images.unsplash.com/photo-1552168324-d612d77725e3?w=1600&q=80';
+
+const features = [
+  {
+    icon: Layers,
+    title: 'Layer-Based Editing',
+    description: 'Professional layer management with masks, blending modes, and adjustments'
+  },
+  {
+    icon: Wand2,
+    title: 'AI-Powered Tools',
+    description: 'Smart selection, background removal, and auto-enhancement'
+  },
+  {
+    icon: Palette,
+    title: 'Professional Tools',
+    description: 'Complete set of professional editing tools and filters'
+  },
+  {
+    icon: History,
+    title: 'Unlimited History',
+    description: 'Comprehensive undo/redo with detailed history panel'
+  }
+];
+
+const testimonials = [
+  {
+    name: "Sarah Chen",
+    role: "Professional Photographer",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    content: "This editor has revolutionized my workflow. The AI tools are incredible!",
+    rating: 5
+  },
+  {
+    name: "Marcus Rodriguez",
+    role: "Digital Artist",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    content: "Perfect balance of power and ease of use. A game-changer for my projects.",
+    rating: 5
+  },
+  {
+    name: "Emily Parker",
+    role: "Marketing Director",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    content: "Finally, a professional editor that works right in the browser!",
+    rating: 5
+  }
+];
+
+const examples = [
+  {
+    url: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200&q=80',
+    title: 'Photo Retouching',
+    description: 'Perfect your photos with professional retouching tools'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80',
+    title: 'Graphic Design',
+    description: 'Create stunning designs with powerful tools'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80',
+    title: 'Digital Art',
+    description: 'Express your creativity with digital brushes and effects'
+  }
+];
+
+const stats = [
+  { icon: Users, value: '2M+', label: 'Active Users' },
+  { icon: Zap, value: '100M+', label: 'Edits Made' },
+  { icon: Star, value: '4.9/5', label: 'User Rating' },
+  { icon: Award, value: '10+', label: 'Industry Awards' }
+];
 
 function App() {
   const [image, setImage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [showLearnMore, setShowLearnMore] = useState(false);
+  
+  // Use intersection observer hooks for animations
+  const [heroRef, heroInView] = useInView({ triggerOnce: true });
+  const [statsRef, statsInView] = useInView({ triggerOnce: true });
+  const [featuresRef, featuresInView] = useInView({ triggerOnce: true });
+  const [examplesRef, examplesInView] = useInView({ triggerOnce: true });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -64,161 +156,366 @@ function App() {
     reader.readAsDataURL(file);
   };
 
+  const handleTryDemo = useCallback(() => {
+    setIsUploading(true);
+    // Simulate loading the demo image
+    setTimeout(() => {
+      setImage(DEMO_IMAGE);
+      setIsUploading(false);
+    }, 800);
+  }, []);
+
+  const handleLearnMore = useCallback(() => {
+    const element = document.getElementById('features');
+    element?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleTryExample = useCallback((exampleUrl: string) => {
+    setIsUploading(true);
+    // Simulate loading the example image
+    setTimeout(() => {
+      setImage(exampleUrl);
+      setIsUploading(false);
+    }, 800);
+  }, []);
+
   if (image) {
     return <Editor imageUrl={image} />;
   }
 
-  const features = [
-    {
-      icon: Layers,
-      title: 'Layer-Based Editing',
-      description: 'Full layer support with blending modes, masks, and adjustments'
-    },
-    {
-      icon: Wand2,
-      title: 'Smart Selection Tools',
-      description: 'Precise selection tools including Magic Wand and Quick Selection'
-    },
-    {
-      icon: Palette,
-      title: 'Professional Tools',
-      description: 'Complete set of professional editing tools and filters'
-    },
-    {
-      icon: History,
-      title: 'Unlimited History',
-      description: 'Comprehensive undo/redo with detailed history panel'
-    }
-  ];
-
-  const examples = [
-    {
-      url: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&q=80',
-      title: 'Photo Retouching'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1534131707746-25d604851a1f?w=600&q=80',
-      title: 'Graphic Design'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1496715976403-7e36dc43f17b?w=600&q=80',
-      title: 'Digital Art'
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
-      <header className="container mx-auto px-4 py-6">
-        <nav className="flex justify-between items-center mb-16">
-          <div className="flex items-center space-x-2">
-            <ImageIcon className="w-8 h-8 text-blue-400" />
-            <span className="text-2xl font-bold">Sarux PS</span>
-          </div>
-          <div className="flex items-center space-x-6">
-            <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-            <a href="#examples" className="text-gray-300 hover:text-white transition-colors">Examples</a>
-            <button className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors">
-              Get Started
-            </button>
-          </div>
-        </nav>
-
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
-            Professional Photo Editing in Your Browser
-          </h1>
-          <p className="text-xl text-gray-300 mb-8">
-            Edit photos like a pro with our powerful, free online image editor. No installation required.
-          </p>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 pb-20">
-        <div
-          className={`max-w-4xl mx-auto border-4 border-dashed rounded-2xl p-12 text-center transition-all duration-200 cursor-pointer mb-20 ${
-            isDragging
-              ? 'border-blue-400 bg-blue-400/10 scale-102'
-              : 'border-gray-600 hover:border-gray-500'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+      {/* Hero Section */}
+      <header className="relative overflow-hidden">
+        <motion.div
+          ref={heroRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={heroInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="container mx-auto px-4 pt-6"
         >
-          {isUploading ? (
-            <div className="animate-pulse">
-              <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400" />
-              <h3 className="text-2xl font-semibold mb-2">Uploading...</h3>
+          <nav className="flex justify-between items-center mb-16">
+            <div className="flex items-center space-x-2">
+              <ImageIcon className="w-8 h-8 text-blue-400" />
+              <span className="text-2xl font-bold">Sarux PS</span>
             </div>
-          ) : (
-            <>
-              <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400" />
-              <h3 className="text-3xl font-semibold mb-4">
-                Drag & Drop to Start Editing
-              </h3>
-              <p className="text-gray-400 text-lg mb-8">
-                or select a file from your computer
-              </p>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="inline-block bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors cursor-pointer"
+            <div className="hidden md:flex items-center space-x-6">
+              <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
+              <a href="#examples" className="text-gray-300 hover:text-white transition-colors">Examples</a>
+              <button 
+                onClick={handleTryDemo}
+                className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors"
               >
-                Choose File
-              </label>
-              {error && (
-                <p className="mt-4 text-red-400 text-lg">{error}</p>
-              )}
-              <p className="mt-6 text-sm text-gray-500">
-                Supported formats: JPG, PNG, GIF, WebP (max 20MB)
-              </p>
-            </>
-          )}
-        </div>
+                Get Started
+              </button>
+            </div>
+            {/* Mobile Menu Button */}
+            <button className="md:hidden p-2 text-gray-300 hover:text-white">
+              <Menu className="w-6 h-6" />
+            </button>
+          </nav>
 
-        <section id="features" className="max-w-5xl mx-auto mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Professional Features, <span className="text-blue-400">Zero Install</span>
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-4xl md:text-6xl font-bold mb-6"
+            >
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 text-transparent bg-clip-text">
+                Professional Photo Editing
+              </span>
+              <br />
+              <span className="text-white">in Your Browser</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={heroInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-lg md:text-xl text-gray-300 mb-8 px-4"
+            >
+              Edit photos like a pro with our powerful, free online image editor.
+              No installation required.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={heroInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 px-4"
+            >
+              <button 
+                onClick={handleTryDemo}
+                className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <Play className="w-5 h-5" />
+                <span>Try Demo</span>
+              </button>
+              <button 
+                onClick={handleLearnMore}
+                className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              >
+                <ChevronRight className="w-5 h-5" />
+                <span>Learn More</span>
+              </button>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Upload Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={heroInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="container mx-auto px-4 mb-20"
+        >
+          <div
+            className={`
+              max-w-4xl mx-auto border-4 border-dashed rounded-2xl p-12 text-center
+              transition-all duration-200 cursor-pointer backdrop-blur-sm
+              ${isDragging
+                ? 'border-blue-400 bg-blue-400/10 scale-102'
+                : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
+              }
+            `}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {isUploading ? (
+              <div className="animate-pulse">
+                <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400" />
+                <h3 className="text-2xl font-semibold mb-2">Uploading...</h3>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-20 h-20 mx-auto mb-6 text-blue-400" />
+                <h3 className="text-3xl font-semibold mb-4">
+                  Drag & Drop to Start Editing
+                </h3>
+                <p className="text-gray-400 text-lg mb-8">
+                  or select a file from your computer
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="inline-block bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors cursor-pointer"
+                >
+                  Choose File
+                </label>
+                {error && (
+                  <p className="mt-4 text-red-400 text-lg">{error}</p>
+                )}
+                <p className="mt-6 text-sm text-gray-500">
+                  Supported formats: JPG, PNG, GIF, WebP (max 20MB)
+                </p>
+              </>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div
+          ref={statsRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={statsInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="container mx-auto px-4 mb-20"
+        >
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={statsInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <stat.icon className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+                <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                <div className="text-gray-400">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Features Section */}
+        <motion.section
+          id="features"
+          ref={featuresRef}
+          className="container mx-auto px-4 py-20"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-bold mb-4">
+              Professional Features, <span className="text-blue-400">Zero Install</span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              Everything you need for professional photo editing, right in your browser
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {features.map((feature, index) => (
-              <div key={index} className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm hover:bg-gray-800 transition-colors"
+              >
                 <feature.icon className="w-12 h-12 text-blue-400 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
-              </div>
+              </motion.div>
             ))}
+          </div>
+        </motion.section>
+
+        {/* Testimonials Section */}
+        <section className="container mx-auto px-4 py-20 overflow-hidden">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">
+              Loved by <span className="text-blue-400">Creators</span>
+            </h2>
+            <p className="text-gray-400 text-lg">
+              Join thousands of satisfied professionals using our editor
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTestimonial}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.5 }}
+                className="bg-gray-800/50 rounded-xl p-8 backdrop-blur-sm"
+              >
+                <div className="flex items-center space-x-4 mb-6">
+                  <img
+                    src={testimonials[activeTestimonial].avatar}
+                    alt={testimonials[activeTestimonial].name}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                  <div>
+                    <h3 className="text-xl font-semibold">
+                      {testimonials[activeTestimonial].name}
+                    </h3>
+                    <p className="text-gray-400">
+                      {testimonials[activeTestimonial].role}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-lg text-gray-300 mb-4">
+                  "{testimonials[activeTestimonial].content}"
+                </p>
+                <div className="flex space-x-1">
+                  {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </section>
 
-        <section id="examples" className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Endless <span className="text-blue-400">Possibilities</span>
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+        {/* Examples Section */}
+        <motion.section
+          id="examples"
+          ref={examplesRef}
+          className="container mx-auto px-4 py-20"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={examplesInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-bold mb-4">
+              Endless <span className="text-blue-400">Possibilities</span>
+            </h2>
+            <p className="text-gray-400 text-lg">
+              Create anything you can imagine with our professional tools
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {examples.map((example, index) => (
-              <div key={index} className="group relative overflow-hidden rounded-xl">
-                <img
-                  src={example.url}
-                  alt={example.title}
-                  className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent flex items-end p-6">
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="w-5 h-5 text-blue-400" />
-                    <span className="text-lg font-medium">{example.title}</span>
-                  </div>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={examplesInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group relative rounded-xl bg-gray-800 overflow-hidden"
+              >
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src={example.url}
+                    alt={example.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    loading="lazy"
+                  />
                 </div>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent flex flex-col justify-end p-6">
+                  <h3 className="text-xl font-semibold mb-2">{example.title}</h3>
+                  <p className="text-gray-300 mb-4">{example.description}</p>
+                  <button 
+                    onClick={() => handleTryExample(example.url)}
+                    className="flex items-center text-blue-400 hover:text-blue-300 transition-colors group"
+                  >
+                    <span>Try it now</span>
+                    <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </motion.div>
             ))}
           </div>
+        </motion.section>
+
+        {/* CTA Section */}
+        <section className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-6">
+              Ready to Start <span className="text-blue-400">Creating?</span>
+            </h2>
+            <p className="text-gray-400 text-lg mb-8">
+              Join millions of creators and start editing your photos professionally today.
+            </p>
+            <button 
+              onClick={handleTryDemo}
+              className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-xl font-medium text-lg transition-colors"
+            >
+              Start Editing Now
+            </button>
+          </div>
         </section>
-      </main>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-800 mt-20">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <ImageIcon className="w-6 h-6 text-blue-400" />
+                <span className="text-xl font-bold">Sarux PS</span>
+              </div>
+              <div className="text-gray-400">
+                © 2025 Sarux PS. All rights reserved.
+              </div>
+            </div>
+          </div>
+        </footer>
+      </header>
     </div>
   );
 }
